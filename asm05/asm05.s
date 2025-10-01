@@ -38,7 +38,11 @@ mov rdx, 1
 syscall
 
 ;quitter proprement
-.no_param:
 mov rax, 60      ;exit
 xor rdi, rdi     ;code retour 0, rdi O
+syscall
+
+.no_param:
+mov rax, 60
+mov rdi, 1                ; code retour = 1
 syscall
