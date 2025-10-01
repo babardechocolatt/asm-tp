@@ -1,45 +1,65 @@
 section .data
-msg db "1337", 10     ; 10 = '\n' ;"message qu’on affichera si input = "42" puis retour à la ligne \n"
-len equ $ - msg       ; "longueur du msg"
+msg db "1337", 10
+len equ $ - msg
 
-section .bss          ;.bss sert à dire : “je veux un espace mémoire dispo pour stocker des données pendant l’exécution”.
-    buffer resb 10    ;"buffer = c’est le label (un nom) → tu pourras l’utiliser comme adresse. resb 10 = reserve byte → réserve 10 octets.Donc buffer est une zone mémoire de 10 cases vides que tu peux remplir avec ce que l’utilisateur tape."
+section .bss
+buffer resb 10
 
-section .text    ; "le programme (les instructions que le processeur doit exécuter)"
-global _start    ;"Le point d’entrée de mon programme s’appelle _start, et je rends ce label visible à l’éditeur de liens (ld) pour qu’il sache où commencer l’exécution."
+section .text
+global _start
 
-_start: 
+_start:
+    ; read(stdin, buffer, 10)
+    mov rax, 0        ; syscall read
+    mov rdi, 0        ; stdin
+    mov rsi, buffer   ; adresse du buffer
+    mov rdx, 10       ; max 10 octets
+    syscall           ; RAX = nb d’octets lus
 
-mov rax, 0        ;syscall read
-mov rdi, 0        ;stdin
-mov rsi, buffer   ;adresse où écrire
-mov rdx, 10       ;max 10 octets
-syscall
+    ; sauvegarder nb d’octets lus
+    mov rcx, rax      
 
 
-mov al, byte [buffer] ;mettre le premier caractère (1 octet) dans AL
-cmp al, '4'  ;comparer à '4'
-jne not_equal  ;si différent de '4' > aller à "not_equal"
+    ; Vérifier qu’on a au moins 2 caractères
+    cmp rcx, 2
+    jl not_equal
 
-mov al, byte [buffer+1] ;lire le deuxième caractère
-cmp al, '2'   ;comparer à '2'
-jne not_equal   ; si différent '2' >aller à "not_equal"
+    ; Vérifier '4'
+    mov al, [buffer]
+    cmp al, '4'
+    jne not_equal
 
-;si tout est bon>afficher 1337 >écrire msg vers stdout
+    ; Vérifier '2'
+    mov al, [buffer+1]
+    cmp al, '2'
+    jne not_equal
 
-mov rax, 1  ;syscall write 
-mov rdi, 1  ;stdout
-mov rsi, msg ; adresse de message
-mov rdx, len  ;longueur
-syscall
-;exit 0
-mov rax, 60
-xor rdi, rdi 
-syscall
+    ; Cas pile "42"
+    cmp rcx, 2
+    je ok_print
 
-;sinon>exit1
+    ; Cas "42\n"
+    cmp rcx, 3
+    jne not_equal
+    mov al, [buffer+2]
+    cmp al, 10        ; '\n'
+    jne not_equal
 
-not_equal: 
-mov rax, 60
-mov rdi, 1  ; code retour 1
-syscall
+ok_print:
+    ; write(stdout, msg, len)
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg
+    mov rdx, len
+    syscall
+
+    ; exit(0)
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+not_equal:
+    ; exit(1)
+    mov rax, 60
+    mov rdi, 1
+    syscall
