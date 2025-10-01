@@ -15,10 +15,19 @@ syscall
 xor rbx, rbx       ;on met rbx = 0, ce sera notre nombre final
 mov rcx, buffer    ;rcx = pointeur qui lit caractère par caractère
 
-;convertir le caractère en chiffre
 mov al, [buffer]   ;récupère le premier caractère 
-sub al, '0'        ;transforme '5'>5
-movzx rbx, al      ;stock le chiffre dans rbx
+
+;vérifier si caractère chiffre
+cmp al, '0'        ;compare avec '0'
+jb .invalid        ;si plus petit>invalid
+cmp al, '9'        ;compare avec '9'
+ja .invalid        ;si plus grand>invalid
+
+;transforme caractère nombre
+sub al, '0'        ;décallage aschii
+movzx rbx, al      ;stock nombre dans rbx
+
+
 
 ;tester si pair ou impair
 mov rax, rbx
@@ -27,10 +36,15 @@ jz .even           ;si 0>pair
 
 .odd: ;sortie impair 
 mov rax, 60        ;syscall exit   
-xor rdi, 1         ; code retour  impair
+mov rdi, 1         ; code retour  impair
 syscall
 
 .even: ;sortie pair
 mov rax, 60       ; syscall exit
 xor rdi, rdi     ; code retour 0 = pair
+syscall
+
+.invalid:     ;entrée invalide
+mov rax, 60
+mov rdi, 2    ;code retour 2
 syscall
