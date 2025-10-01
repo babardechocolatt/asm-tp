@@ -5,7 +5,11 @@ section .text
 global _start
 
 _start:
-      
+
+mov rbx, [rsp]   ;rbx = nombre d’arguments passés au programme (argc)/x: ./asm05 "Hello" → argc = 2
+cmp rbx, 2       ;est-ce que argc < 2 ?
+jb .no_param
+
           ;récupérer argv[1] (premier argument utilisateur)
 mov rsi, [rsp+16]  ;adresse mémoire tu text user
 
@@ -24,7 +28,6 @@ jmp .count  ;recommence avec le caractère suivant
       ;demander à linux d'afficher le texte
 mov rax, 1    ;syscall write
 mov rdi, 1    ;stdout
-mov rdx, rdx
 syscall
 
 ;afficher retour à la ligne 
@@ -35,6 +38,7 @@ mov rdx, 1
 syscall
 
 ;quitter proprement
+.no_param:
 mov rax, 60      ;exit
 xor rdi, rdi     ;code retour 0, rdi O
 syscall
