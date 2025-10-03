@@ -1,3 +1,4 @@
+
 section .bss
 buffer resb 32    ;résserve 32 octets
 
@@ -21,6 +22,12 @@ mov rsi, buffer   ;pointe sur buffer
 mov bl, byte [rsi]    ;lire caractère
 cmp bl, 10            ;fin si tombe sur '\n'
 je .after_conv        ;sortie boucle
+
+cmp bl, '0'           ;si caractère < '0'
+jl .invalid_input
+cmp bl, '9'           ;si caractère > '9'
+jg .invalid_input
+
 sub bl, '0'           ;conversion chiffre numérique
 imul rax, rax, 10     ;déclarer
 add rax, rbx          ;ajoute chiffre courant 
@@ -58,4 +65,9 @@ syscall
 .not_prime:
 mov rax, 60           ;syscall exit
 mov rdi, 1            ;code retour 1
+syscall
+
+.invalid_input:
+mov rax, 60           ;syscall exit
+mov rdi, 2            ;code retour 2 (erreur input)
 syscall
